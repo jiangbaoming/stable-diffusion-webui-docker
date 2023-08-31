@@ -80,6 +80,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
   pip install -r requirements_versions.txt
 
 COPY . /docker
+RUN chmod +x /docker/entrypoint.sh
 
 RUN \
   python3 /docker/info.py ${ROOT}/modules/ui.py && \
