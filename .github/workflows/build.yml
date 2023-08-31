@@ -15,7 +15,7 @@ on:
         required: true
         default: ''
     branches:
-      - master
+      - main
     paths:
       - AUTOMATIC1111
 
@@ -26,7 +26,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@master
+        uses: actions/checkout@main
 
       -
         name: Set Up QEMU
