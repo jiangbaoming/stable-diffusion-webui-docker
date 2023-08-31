@@ -17,8 +17,7 @@ on:
     branches:
       - master
     paths:
-      - docker-compose.yml
-      - services
+      - AUTOMATIC1111
 
 jobs:
   build:
