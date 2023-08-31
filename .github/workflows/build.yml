@@ -42,4 +42,4 @@ jobs:
           push: true
           tags: |
             ${{ github.event.inputs.docker_username }}/stable-diffusion-webui:latest
-            ${{ github.event.inputs.docker_username }}stable-diffusion-webui:${{ github.event.inputs.version }}
+            ${{ github.event.inputs.docker_username }}/stable-diffusion-webui:${{ github.event.inputs.version }}
