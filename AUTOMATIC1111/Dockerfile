@@ -92,9 +92,8 @@ RUN \
 STOPSIGNAL SIGKILL
 WORKDIR ${ROOT}
 ENV NVIDIA_VISIBLE_DEVICES=all
-ENV CLI_ARGS="--no-half --precision full --allow-code --enable-insecure-extension-access --api"
-VOLUME /data
-VOLUME /uptput
+ENV CLI_ARGS="--skip-torch-cuda-test --no-half --precision full --use-cpu all --enable-insecure-extension-access --api"
+VOLUME ["/data","/uptput"]
 EXPOSE 7860
 ENTRYPOINT ["/docker/entrypoint.sh"]
 CMD python -u webui.py --listen --port 7860 ${CLI_ARGS}
