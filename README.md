@@ -3,6 +3,7 @@
 Run Stable Diffusion  on your machine with a nice UI by cpu
 
 ### [AUTOMATIC1111](https://github.com/AUTOMATIC1111/stable-diffusion-webui)
+### [AbdBarho](https://github.com/AbdBarho/stable-diffusion-webui-docker)
 
 [Full feature list here](https://github.com/AUTOMATIC1111/stable-diffusion-webui-feature-showcase), Screenshots:
 
