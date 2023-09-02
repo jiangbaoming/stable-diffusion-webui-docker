@@ -44,7 +44,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 COPY . /docker/
 RUN chmod +x /docker/entrypoint.sh
 ENV NVIDIA_VISIBLE_DEVICES=all PRELOAD=true
-ENV PYTHONUNBUFFERED=1 PRELOAD=false HF_HOME=/root/.cache/huggingface CONFIG_DIR=/data/config/invoke CLI_ARGS="--always_use_cpu"
+ENV PYTHONUNBUFFERED=1 PRELOAD=false HF_HOME=/root/.cache/huggingface CONFIG_DIR=/data/config/invoke CLI_ARGS="--cpu"
 EXPOSE 7860
 VOLUME ["/data","/uptput"]
 ENTRYPOINT ["/docker/entrypoint.sh"]
