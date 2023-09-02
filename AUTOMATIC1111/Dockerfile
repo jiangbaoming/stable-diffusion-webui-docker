@@ -86,12 +86,12 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 COPY . /docker
 RUN chmod +x /docker/entrypoint.sh
 
-RUN \
-  python3 /docker/info.py ${ROOT}/modules/ui.py && \
-  mv ${ROOT}/style.css ${ROOT}/user.css && \
+#RUN \
+#  python3 /docker/info.py ${ROOT}/modules/ui.py && \
+#  mv ${ROOT}/style.css ${ROOT}/user.css && \
   # one of the ugliest hacks I ever wrote \
-  sed -i 's/in_app_dir = .*/in_app_dir = True/g' /usr/local/lib/python3.10/site-packages/gradio/routes.py && \
-  git config --global --add safe.directory '*'
+#  sed -i 's/in_app_dir = .*/in_app_dir = True/g' /usr/local/lib/python3.10/site-packages/gradio/routes.py && \
+RUN  git config --global --add safe.directory '*'
 
 STOPSIGNAL SIGKILL
 WORKDIR ${ROOT}
