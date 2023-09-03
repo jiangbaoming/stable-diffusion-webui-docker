@@ -8,10 +8,7 @@ FROM python:3.10.9-slim as source
 # https://github.com/invoke-ai/InvokeAI/blob/main/docs/installation/INSTALL_PATCHMATCH.md
 RUN --mount=type=cache,target=/var/cache/apt \
   apt-get update && \
-  apt-get install make g++ git libopencv-dev -y && \
-  apt-get clean && \
-  cd /usr/lib/x86_64-linux-gnu/pkgconfig/ && \
-  ln -sf opencv4.pc opencv.pc
+  apt-get install  git -y
 ENV ROOT=/InvokeAI
 RUN git clone https://github.com/invoke-ai/InvokeAI.git ${ROOT}
 
