@@ -53,6 +53,6 @@ ENV PYTHONUNBUFFERED=1 PRELOAD=false HF_HOME=/root/.cache/huggingface CONFIG_DIR
 EXPOSE 7860
 VOLUME ["/data","/uptput"]
 ENTRYPOINT ["/docker/entrypoint.sh"]
-CMD invokeai  --host 0.0.0.0 --port 7860 --root ${ROOT} --con_path ${CONFIG_DIR}/models.yaml \
+CMD invokeai  --host 0.0.0.0 --port 7860 --root ${ROOT} --conf_path ${CONFIG_DIR}/models.yaml \
   --outdir /output/invoke --embedding_dir /data/embeddings/ --lora_dir /data/models/Lora \
   ${CLI_ARGS}
