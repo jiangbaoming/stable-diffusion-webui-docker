@@ -3,6 +3,31 @@ RUN apk add --no-cache aria2
 RUN aria2c -x 5 --dir / --out wheel.whl 'https://github.com/AbdBarho/stable-diffusion-webui-docker/releases/download/6.0.0/xformers-0.0.21.dev544-cp310-cp310-manylinux2014_x86_64-pytorch201.whl'
 
 
+FROM python:3.10.9-slim as source
+# patch match:
+# https://github.com/invoke-ai/InvokeAI/blob/main/docs/installation/INSTALL_PATCHMATCH.md
+RUN --mount=type=cache,target=/var/cache/apt \
+  apt-get update && \
+  apt-get install make g++ git libopencv-dev -y && \
+  apt-get clean && \
+  cd /usr/lib/x86_64-linux-gnu/pkgconfig/ && \
+  ln -sf opencv4.pc opencv.pc
+ENV ROOT=/InvokeAI
+RUN git clone https://github.com/invoke-ai/InvokeAI.git ${ROOT}
+
+# #### Build the Web UI ------------------------------------
+
+FROM node:18 AS web-builder
+
+WORKDIR /build
+
+COPY --from=source /InvokeAI/invokeai/frontend/web/ ./
+
+RUN --mount=type=cache,target=/usr/lib/node_modules \
+    npm install --include dev
+RUN --mount=type=cache,target=/usr/lib/node_modules \
+    yarn vite build
+
 FROM python:3.10.9-slim
 
 ENV DEBIAN_FRONTEND=noninteractive PIP_EXISTS_ACTION=w PIP_PREFER_BINARY=1
@@ -45,11 +70,11 @@ RUN --mount=type=cache,target=/root/.cache/pip \
   pip install -U opencv-python-headless triton /xformers-0.0.21-cp310-cp310-linux_x86_64.whl && \
   python3 -c "from patchmatch import patch_match"
 
-
+COPY --from=web-builder /build/dist ${ROOT}/invokeai/frontend/web/dist
 COPY . /docker/
 RUN chmod +x /docker/entrypoint.sh
 ENV NVIDIA_VISIBLE_DEVICES=all PRELOAD=true
-ENV PYTHONUNBUFFERED=1 PRELOAD=false HF_HOME=/root/.cache/huggingface CONFIG_DIR=/data/config/invoke CLI_ARGS="-- always_use_cpu"
+ENV PYTHONUNBUFFERED=1 PRELOAD=false HF_HOME=/root/.cache/huggingface CONFIG_DIR=/data/config/invoke CLI_ARGS="--web --always_use_cpu --db_dir /data/config/invoke"
 EXPOSE 7860
 VOLUME ["/data","/uptput"]
 ENTRYPOINT ["/docker/entrypoint.sh"]
