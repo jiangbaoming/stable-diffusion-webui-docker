@@ -6,37 +6,30 @@ RUN aria2c -x 5 --dir / --out wheel.whl 'https://github.com/AbdBarho/stable-diff
 FROM python:3.10.9-slim as source
 # patch match:
 # https://github.com/invoke-ai/InvokeAI/blob/main/docs/installation/INSTALL_PATCHMATCH.md
-RUN --mount=type=cache,target=/var/cache/apt \
-  apt-get update && \
-  apt-get install  git -y
+RUN apt-get update && apt-get install  git -y
 ENV ROOT=/InvokeAI
 RUN git clone https://github.com/invoke-ai/InvokeAI.git ${ROOT}
 
 # #### Build the Web UI ------------------------------------
 
 FROM node:18 AS web-builder
-
 WORKDIR /build
-
 COPY --from=source /InvokeAI/invokeai/frontend/web/ ./
-
 RUN --mount=type=cache,target=/usr/lib/node_modules \
     npm install --include dev
 RUN --mount=type=cache,target=/usr/lib/node_modules \
     yarn vite build
 
 FROM python:3.10.9-slim
-
 ENV DEBIAN_FRONTEND=noninteractive PIP_EXISTS_ACTION=w PIP_PREFER_BINARY=1
-
 # patch match:
 # https://github.com/invoke-ai/InvokeAI/blob/main/docs/installation/INSTALL_PATCHMATCH.md
 RUN --mount=type=cache,target=/var/cache/apt \
   apt-get update && \
   apt-get install make g++ git libopencv-dev -y && \
   apt-get clean && \
-  cd /usr/lib/x86_64-linux-gnu/pkgconfig/ && \
-  ln -sf opencv4.pc opencv.pc
+  cd /usr/lib/x86_64-linux-gnu/pkgconfig/ && ln -sf opencv4.pc opencv.pc
+  
 
 ARG TORCH_VERSION=2.0.1
 ARG TORCHVISION_VERSION=0.15.2
