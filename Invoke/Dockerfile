@@ -116,8 +116,8 @@ COPY --link --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 
 # Link amdgpu.ids for ROCm builds
 # contributed by https://github.com/Rubonnek
-RUN mkdir -p "/opt/amdgpu/share/libdrm" &&\
-  ln -s "/usr/share/libdrm/amdgpu.ids" "/opt/amdgpu/share/libdrm/amdgpu.ids"
+#RUN mkdir -p "/opt/amdgpu/share/libdrm" &&\
+#  ln -s "/usr/share/libdrm/amdgpu.ids" "/opt/amdgpu/share/libdrm/amdgpu.ids"
 
 WORKDIR ${INVOKEAI_SRC}
 
@@ -126,8 +126,8 @@ RUN cd /usr/lib/$(uname -p)-linux-gnu/pkgconfig/ && ln -sf opencv4.pc opencv.pc
 RUN python3 -c "from patchmatch import patch_match"
 
 # Create unprivileged user and make the local dir
-RUN useradd --create-home --shell /bin/bash -u 1000 --comment "container local user" invoke
-RUN mkdir -p ${INVOKEAI_ROOT} && chown -R invoke:invoke ${INVOKEAI_ROOT}
+#RUN useradd --create-home --shell /bin/bash -u 1000 --comment "container local user" invoke
+#RUN mkdir -p ${INVOKEAI_ROOT} && chown -R invoke:invoke ${INVOKEAI_ROOT}
 
 #COPY docker-entrypoint.sh ./
 VOLUME ["/data","/output"]
