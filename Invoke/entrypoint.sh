@@ -39,7 +39,7 @@ done
 if "${PRELOAD}" == "true"; then
   set -Eeuo pipefail
   invokeai-configure --root ${ROOT} --yes
-  cp ${ROOT}/configs/models.yaml ${CONFIG_DIR}/models.yaml
+  cp ${ROOT}/invokeai/configs/models.yaml.example ${CONFIG_DIR}/models.yaml
 fi
 
 exec "$@"
