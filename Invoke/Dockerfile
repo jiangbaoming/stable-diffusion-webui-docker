@@ -133,6 +133,7 @@ COPY docker-entrypoint.sh ./
 VOLUME ["/data","/output"]
 EXPOSE 7860
 ENV CLI_ARGS="--always_use_cpu"
+RUN chmod +x /opt/invokeai/docker-entrypoint.sh
 ENTRYPOINT ["/opt/invokeai/docker-entrypoint.sh"]
 CMD invokeai --web --host 0.0.0.0 --port 7860 --root ${INVOKEAI_ROOT} \
   --outdir /output/invoke --embedding_dir /data/embeddings/ --lora_dir /data/models/Lora \
