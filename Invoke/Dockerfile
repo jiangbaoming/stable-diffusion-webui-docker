@@ -52,7 +52,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 #COPY /temp/invoke/invokeai ./invokeai
 #COPY /temp/invoke/pyproject.toml ./
-RUN cp /temp/invoke/invokeai ./invokeai
+RUN cp -r /temp/invoke/invokeai ./invokeai
 RUN cp /temp/invoke/pyproject.toml ./
 RUN --mount=type=cache,target=/root/.cache/pip \
     # xformers + triton fails to install on arm64
