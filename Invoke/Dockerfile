@@ -25,7 +25,7 @@ ARG TARGETPLATFORM="linux/amd64"
 # unused but available
 ARG BUILDPLATFORM
 
-RUN git clone https://github.com/invoke-ai/InvokeAI.git /temp
+RUN git clone https://github.com/invoke-ai/InvokeAI.git /temp/invoke
 
 WORKDIR ${INVOKEAI_SRC}
 
@@ -50,8 +50,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 # the local working copy can be bind-mounted into the image
 # at path defined by ${INVOKEAI_SRC}
 
-COPY /temp/invokeai ./invokeai
-COPY /temp/pyproject.toml ./
+COPY /temp/invoke/invokeai ./invokeai
+COPY /temp/invoke/pyproject.toml ./
 RUN --mount=type=cache,target=/root/.cache/pip \
     # xformers + triton fails to install on arm64
     if [ "$GPU_DRIVER" = "cuda" ] && [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
