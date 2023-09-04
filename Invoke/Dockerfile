@@ -75,7 +75,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 #[--use_memory_db | --no-use_memory_db] [--model MODEL] [--log_handlers [LOG_HANDLERS ...]] [--log_format {plain,color,syslog,legacy}]
 #[--log_level {debug,info,warning,error,critical}] [--version | --no-version]
 
-COPY entrypoint.sh /docker/
+COPY entrypoint.sh /docker/entrypoint.sh
 RUN chmod +x /docker/entrypoint.sh
 ENV NVIDIA_VISIBLE_DEVICES=all PRELOAD=true
 ENV PYTHONUNBUFFERED=1 PRELOAD=false HF_HOME=/root/.cache/huggingface CONFIG_DIR=/data/config/invoke CLI_ARGS="--always_use_cpu"
