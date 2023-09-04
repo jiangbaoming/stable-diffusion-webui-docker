@@ -106,7 +106,7 @@ RUN pip install magic-wormhole
 
 ENV INVOKEAI_SRC=/opt/invokeai
 ENV VIRTUAL_ENV=/opt/venv/invokeai
-ENV INVOKEAI_ROOT=/invokeai
+ENV INVOKEAI_ROOT=/data/config/invoke
 ENV PATH="$VIRTUAL_ENV/bin:$INVOKEAI_SRC:$PATH"
 
 # --link requires buldkit w/ dockerfile syntax 1.4
@@ -130,9 +130,10 @@ RUN useradd --create-home --shell /bin/bash -u 1000 --comment "container local u
 RUN mkdir -p ${INVOKEAI_ROOT} && chown -R invoke:invoke ${INVOKEAI_ROOT}
 
 COPY docker-entrypoint.sh ./
+VOLUME ["/data","/output"]
+EXPOSE 7860
 ENV CLI_ARGS="--always_use_cpu"
 ENTRYPOINT ["/opt/invokeai/docker-entrypoint.sh"]
 CMD invokeai --web --host 0.0.0.0 --port 7860 --root ${INVOKEAI_ROOT} \
   --outdir /output/invoke --embedding_dir /data/embeddings/ --lora_dir /data/models/Lora \
-  --db_dir /data/config/invoke \
   ${CLI_ARGS}
