@@ -80,7 +80,7 @@ RUN chmod +x /docker/entrypoint.sh
 ENV NVIDIA_VISIBLE_DEVICES=all PRELOAD=true
 ENV PYTHONUNBUFFERED=1 PRELOAD=false HF_HOME=/root/.cache/huggingface CONFIG_DIR=/data/config/invoke CLI_ARGS="--always_use_cpu"
 EXPOSE 7860
-VOLUME ["/data","/uptput"]
+VOLUME ["/data","/output"]
 ENTRYPOINT ["/docker/entrypoint.sh"]
 CMD invokeai --web --host 0.0.0.0 --port 7860 --root ${ROOT}  --conf_path ${CONFIG_DIR}/models.yaml \
   --outdir /output/invoke --embedding_dir /data/embeddings/ --lora_dir /data/models/Lora \
