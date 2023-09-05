@@ -44,10 +44,10 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 COPY . /docker/
 RUN chmod +x /docker/entrypoint.sh
 ENV NVIDIA_VISIBLE_DEVICES=all
-ENV PYTHONUNBUFFERED=1 PRELOAD=false HF_HOME=/root/.cache/huggingface CONFIG_DIR=/data/config/invoke CLI_ARGS=""
+ENV PYTHONUNBUFFERED=1 PRELOAD=false HF_HOME=/root/.cache/huggingface CONFIG_DIR=/data/config/invoke CLI_ARGS="--no-nsfw_checker --no-safety_checker"
 EXPOSE 7860
 VOLUME ["/data","/output"]
 ENTRYPOINT ["/docker/entrypoint.sh"]
 CMD invokeai --web --host 0.0.0.0 --port 7860 --root_dir ${ROOT} --conf_dir ${CONFIG_DIR}/models.yaml \
   --outdir /output/invoke --embedding_directory /data/embeddings/ --lora_directory /data/models/Lora \
-  --no-nsfw_checker --no-safety_checker ${CLI_ARGS}
+   ${CLI_ARGS}
