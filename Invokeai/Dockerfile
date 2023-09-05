@@ -20,13 +20,14 @@ RUN --mount=type=cache,target=/var/cache/apt \
 ENV ROOT=/InvokeAI
 RUN git clone https://github.com/invoke-ai/InvokeAI.git ${ROOT}
 WORKDIR ${ROOT}
+ARG SHA=d69f3a03bb5006ca24b3bb401de514f4ae06c391
 
 RUN --mount=type=cache,target=/root/.cache/pip \
-  git reset --hard f3b2e02921927d9317255b1c3811f47bd40a2bf9 && \
+  git reset --hard ${SHA} && \
   pip install -e .
 
 
-ARG BRANCH=main SHA=f3b2e02921927d9317255b1c3811f47bd40a2bf9
+ARG BRANCH=main
 RUN --mount=type=cache,target=/root/.cache/pip \
   git fetch && \
   git reset --hard && \
