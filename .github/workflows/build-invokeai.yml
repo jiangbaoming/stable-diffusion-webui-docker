@@ -17,7 +17,7 @@ on:
     branches:
       - main
     paths:
-      - Invoke
+      - Invokeai
 
 jobs:
   build:
@@ -37,8 +37,8 @@ jobs:
         name: Build Image
         uses: docker/build-push-action@v2
         with:
-          context: Invoke
-          file: Invoke/Dockerfile
+          context: Invokeai
+          file: Invokeai/Dockerfile
           push: true
           tags: |
             ${{ github.event.inputs.docker_username }}/invoke-ai:latest
