@@ -26,6 +26,10 @@ WORKDIR ${ROOT}
 # git reset --hard ${SHA} && \
 # pip install -e .
 
+RUN --mount=type=cache,target=/root/.cache/pip \
+  --mount=type=bind,from=xformers,source=/wheel.whl,target=/xformers-0.0.21-cp310-cp310-linux_x86_64.whl \
+  pip install -U opencv-python-headless triton /xformers-0.0.21-cp310-cp310-linux_x86_64.whl && \
+  python3 -c "from patchmatch import patch_match"
 
 # ARG BRANCH=main
 RUN --mount=type=cache,target=/root/.cache/pip \
@@ -34,13 +38,6 @@ RUN --mount=type=cache,target=/root/.cache/pip \
   # git checkout ${BRANCH} && \
   # git reset --hard ${SHA} && \
   pip install -U -e .
-
-RUN --mount=type=cache,target=/root/.cache/pip \
-  --mount=type=bind,from=xformers,source=/wheel.whl,target=/xformers-0.0.21-cp310-cp310-linux_x86_64.whl \
-  pip install -U opencv-python-headless triton /xformers-0.0.21-cp310-cp310-linux_x86_64.whl && \
-  python3 -c "from patchmatch import patch_match"
-
-
 COPY . /docker/
 RUN chmod +x /docker/entrypoint.sh
 ENV NVIDIA_VISIBLE_DEVICES=all
