@@ -138,7 +138,7 @@ RUN python3 -c "from patchmatch import patch_match"
 # Create unprivileged user and make the local dir
 # RUN useradd --create-home --shell /bin/bash -u 1000 --comment "container local user" invoke
 # RUN mkdir -p ${INVOKEAI_ROOT}  && chown -R invoke:invoke ${INVOKEAI_ROOT}
-ENV PRELOAD=false CLI_ARGS="--always_use_cpu"
+ENV PRELOAD=false CLI_ARGS="--always_use_cpu" HF_HOME=/root/.cache/huggingface
 COPY entrypoint.sh /docker/a.sh
  RUN chmod +x /docker/a.sh
 EXPOSE 7860
