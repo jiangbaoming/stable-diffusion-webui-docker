@@ -1,52 +1,149 @@
-FROM alpine:3.17 as xformers
-RUN apk add --no-cache aria2
-RUN aria2c -x 5 --dir / --out wheel.whl 'https://github.com/AbdBarho/stable-diffusion-webui-docker/releases/download/6.0.0/xformers-0.0.21.dev544-cp310-cp310-manylinux2014_x86_64-pytorch201.whl'
+# syntax=docker/dockerfile:1.4
 
+## Builder stage
 
-FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime
+FROM library/ubuntu:22.04
 
-ENV DEBIAN_FRONTEND=noninteractive PIP_EXISTS_ACTION=w PIP_PREFER_BINARY=1
+ARG DEBIAN_FRONTEND=noninteractive
+RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt update && apt-get install -y --no-install-recommends \
+        git \
+        python3.10-venv \
+        python3-pip \
+        build-essential \
+        curl \
+        vim \
+        tmux \
+        ncdu \
+        iotop \
+        bzip2 \
+        # gosu \
+        libglib2.0-0 \
+        libgl1-mesa-glx \
+        build-essential \
+        libopencv-dev \
+        libstdc++-10-dev && \
+        apt-get clean && apt-get autoclean
 
-# patch match:
-# https://github.com/invoke-ai/InvokeAI/blob/main/docs/installation/INSTALL_PATCHMATCH.md
-RUN --mount=type=cache,target=/var/cache/apt \
-  apt-get update && \
-  apt-get install make g++ git libopencv-dev -y && \
-  apt-get clean && \
-  cd /usr/lib/x86_64-linux-gnu/pkgconfig/ && \
-  ln -sf opencv4.pc opencv.pc
+ENV INVOKEAI_SRC=/opt/invokeai
+ENV VIRTUAL_ENV=/opt/venv/invokeai
 
+RUN git clone https://github.com/invoke-ai/InvokeAI.git ${INVOKEAI_SRC}
 
-ENV ROOT=/InvokeAI
-RUN git clone https://github.com/invoke-ai/InvokeAI.git ${ROOT}
-WORKDIR ${ROOT}
-# ARG SHA=d69f3a03bb5006ca24b3bb401de514f4ae06c391
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+ARG TORCH_VERSION=2.0.1
+ARG TORCHVISION_VERSION=0.15.2
+ARG GPU_DRIVER=cpu
+ARG TARGETPLATFORM="linux/amd64"
+# unused but available
+ARG BUILDPLATFORM
 
-# RUN --mount=type=cache,target=/root/.cache/pip \
-# git reset --hard ${SHA} && \
-# pip install -e .
+WORKDIR ${INVOKEAI_SRC}
 
-# ARG BRANCH=main
+# Install pytorch before all other pip packages
+# NOTE: there are no pytorch builds for arm64 + cuda, only cpu
+# x86_64/CUDA is default
 RUN --mount=type=cache,target=/root/.cache/pip \
-  # git fetch && \
-  # git reset --hard && \
-  # git checkout ${BRANCH} && \
-  # git reset --hard ${SHA} && \
-  pip install -U -e .
+    python3 -m venv ${VIRTUAL_ENV} &&\
+    if [ "$TARGETPLATFORM" = "linux/arm64" ] || [ "$GPU_DRIVER" = "cpu" ]; then \
+        extra_index_url_arg="--extra-index-url https://download.pytorch.org/whl/cpu"; \
+    elif [ "$GPU_DRIVER" = "rocm" ]; then \
+        extra_index_url_arg="--extra-index-url https://download.pytorch.org/whl/rocm5.4.2"; \
+    else \
+        extra_index_url_arg="--extra-index-url https://download.pytorch.org/whl/cu118"; \
+    fi &&\
+    pip install $extra_index_url_arg \
+        torch==$TORCH_VERSION \
+        torchvision==$TORCHVISION_VERSION
 
+# Install the local package.
+# Editable mode helps use the same image for development:
+# the local working copy can be bind-mounted into the image
+# at path defined by ${INVOKEAI_SRC}
+# COPY invokeai ./invokeai
+# COPY pyproject.toml ./
 RUN --mount=type=cache,target=/root/.cache/pip \
-  --mount=type=bind,from=xformers,source=/wheel.whl,target=/xformers-0.0.21-cp310-cp310-linux_x86_64.whl \
-  pip install -U opencv-python-headless triton /xformers-0.0.21-cp310-cp310-linux_x86_64.whl && \
-  python3 -c "from patchmatch import patch_match"
+    # xformers + triton fails to install on arm64
+    if [ "$GPU_DRIVER" = "cuda" ] && [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+        pip install -e ".[xformers]"; \
+    else \
+        pip install -e "."; \
+    fi
 
-COPY . /docker/
-RUN chmod +x /docker/entrypoint.sh
-ENV NVIDIA_VISIBLE_DEVICES=all
-ENV PYTHONUNBUFFERED=1 PRELOAD=false HF_HOME=/root/.cache/huggingface CONFIG_DIR=/data/config/invoke CLI_ARGS="--always_use_cpu"
+# #### Build the Web UI ------------------------------------
+
+# FROM node:18 AS web-builder
+# WORKDIR /build
+# COPY invokeai/frontend/web/ ./
+# RUN --mount=type=cache,target=/usr/lib/node_modules \
+#     npm install --include dev
+# RUN --mount=type=cache,target=/usr/lib/node_modules \
+#     yarn vite build
+
+
+#### Runtime stage ---------------------------------------
+
+# FROM library/ubuntu:22.04 AS runtime
+
+# ARG DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# RUN apt update && apt install -y --no-install-recommends \
+#         git \
+#         curl \
+#         vim \
+#         tmux \
+#         ncdu \
+#         iotop \
+#         bzip2 \
+#         gosu \
+#         libglib2.0-0 \
+#         libgl1-mesa-glx \
+#         python3-venv \
+#         python3-pip \
+#         build-essential \
+#         libopencv-dev \
+#         libstdc++-10-dev &&\
+#     apt-get clean && apt-get autoclean
+
+# globally add magic-wormhole
+# for ease of transferring data to and from the container
+# when running in sandboxed cloud environments; e.g. Runpod etc.
+RUN pip install magic-wormhole
+
+# ENV INVOKEAI_SRC=/opt/invokeai
+# ENV VIRTUAL_ENV=/opt/venv/invokeai
+ENV INVOKEAI_ROOT=/invokeai
+ENV PATH="$VIRTUAL_ENV/bin:$INVOKEAI_SRC:$PATH"
+
+# --link requires buldkit w/ dockerfile syntax 1.4
+# COPY --link --from=builder ${INVOKEAI_SRC} ${INVOKEAI_SRC}
+# COPY --link --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+# COPY --link --from=web-builder /build/dist ${INVOKEAI_SRC}/invokeai/frontend/web/dist
+
+# Link amdgpu.ids for ROCm builds
+# contributed by https://github.com/Rubonnek
+RUN mkdir -p "/opt/amdgpu/share/libdrm" &&\
+  ln -s "/usr/share/libdrm/amdgpu.ids" "/opt/amdgpu/share/libdrm/amdgpu.ids"
+
+# WORKDIR ${INVOKEAI_SRC}
+
+# build patchmatch
+RUN cd /usr/lib/$(uname -p)-linux-gnu/pkgconfig/ && ln -sf opencv4.pc opencv.pc
+RUN python3 -c "from patchmatch import patch_match"
+
+# Create unprivileged user and make the local dir
+# RUN useradd --create-home --shell /bin/bash -u 1000 --comment "container local user" invoke
+# RUN mkdir -p ${INVOKEAI_ROOT}  && chown -R invoke:invoke ${INVOKEAI_ROOT}
+ENV PRELOAD=false CLI_ARGS="--always_use_cpu"
+COPY entrypoint.sh /docker/a.sh
+ RUN chmod +x /docker/a.sh
 EXPOSE 7860
 VOLUME ["/data","/output"]
-ENTRYPOINT ["/docker/entrypoint.sh"]
-CMD invokeai --ignore_missing_core_models --web --host 0.0.0.0 --port 7860 --root ${ROOT} --conf_path ${CONFIG_DIR}/models.yaml \
+ENTRYPOINT ["/docker/a.sh"]
+CMD invokeai --ignore_missing_core_models --web --host 0.0.0.0 --port 7860 --root ${INVOKEAI_ROOT} \
   --outdir /output/invoke --embedding_dir /data/embeddings/ --lora_dir /data/models/Lora \
-  --db_dir ${CONFIG_DIR} ${CLI_ARGS}
-   
+  ${CLI_ARGS}
