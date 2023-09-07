@@ -26,8 +26,8 @@ MOUNTS["${INVOKEAI_ROOT}/autoimport/main"]=/data/models/Stable-diffusion/
 MOUNTS["${INVOKEAI_ROOT}/autoimport/onnx"]=/data/models/Onnx/
 MOUNTS["${INVOKEAI_ROOT}/autoimport/vae"]=/data/models/VAE/
 
-MOUNTS["${INVOKEAI_ROOT}/configs/"]=/data/config/invoke/configs/
-MOUNTS["${INVOKEAI_ROOT}/databases/invokeai.db"]=/data/config/invoke/databases/invokeai.db
+MOUNTS["${INVOKEAI_ROOT}/configs"]=/data/config/invoke/configs/
+MOUNTS["${INVOKEAI_ROOT}/databases"]=/data/config/invoke/databases/
 MOUNTS["${INVOKEAI_ROOT}/invokeai.yaml"]=/data/config/invoke/invokeai.yaml
 
 
