@@ -20,14 +20,14 @@ MOUNTS["${INVOKEAI_ROOT}/models/realesrgan"]=/data/models/RealESRGAN/
 
 
 MOUNTS["${INVOKEAI_ROOT}/autoimport/controlnet"]=/data/controlnet/
-MOUNTS["${INVOKEAI_ROOT}/autoimport/embedding"]=/data/embedding/
+MOUNTS["${INVOKEAI_ROOT}/autoimport/embedding"]=/data/embeddings/
 MOUNTS["${INVOKEAI_ROOT}/autoimport/lora"]=/data/models/Lora/
 MOUNTS["${INVOKEAI_ROOT}/autoimport/main"]=/data/models/Stable-diffusion/
 MOUNTS["${INVOKEAI_ROOT}/autoimport/onnx"]=/data/models/Onnx/
 MOUNTS["${INVOKEAI_ROOT}/autoimport/vae"]=/data/models/VAE/
 
 MOUNTS["${INVOKEAI_ROOT}/configs/"]=/data/config/invoke/configs/
-MOUNTS["${INVOKEAI_ROOT}/databases/"]=/data/config/invoke/databases/
+MOUNTS["${INVOKEAI_ROOT}/databases/invokeai.db"]=/data/config/invoke/databases/invokeai.db
 MOUNTS["${INVOKEAI_ROOT}/invokeai.yaml"]=/data/config/invoke/invokeai.yaml
 
 
