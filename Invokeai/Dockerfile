@@ -139,11 +139,11 @@ RUN python3 -c "from patchmatch import patch_match"
 # RUN useradd --create-home --shell /bin/bash -u 1000 --comment "container local user" invoke
 # RUN mkdir -p ${INVOKEAI_ROOT}  && chown -R invoke:invoke ${INVOKEAI_ROOT}
 ENV PRELOAD=false CLI_ARGS="--always_use_cpu" HF_HOME=/root/.cache/huggingface
-COPY entrypoint.sh /docker/a.sh
- RUN chmod +x /docker/a.sh
+COPY entrypoint.sh /docker/entrypoint.sh
+ RUN chmod +x /docker/entrypoint.sh
 EXPOSE 7860
 VOLUME ["/data","/output"]
-ENTRYPOINT ["/docker/a.sh"]
+ENTRYPOINT ["/docker/entrypoint.sh"]
 CMD invokeai --ignore_missing_core_models --web --host 0.0.0.0 --port 7860 --root ${INVOKEAI_ROOT} \
-  --outdir /output/invoke --embedding_dir /data/embeddings/ --lora_dir /data/models/Lora \
+  --outdir /output/invoke \
   ${CLI_ARGS}
