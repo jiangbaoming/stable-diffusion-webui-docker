@@ -10,21 +10,23 @@ declare -A MOUNTS
 MOUNTS["/root/.cache"]=/data/.cache/
 
 # this is really just a hack to avoid migrations
-rm -rf ${HF_HOME}/diffusers
+# rm -rf ${HF_HOME}/diffusers
 
 # ui specific
-MOUNTS["${INVOKEAI_ROOT}/models/codeformer"]=/data/models/Codeformer/
-MOUNTS["${INVOKEAI_ROOT}/models/gfpgan/GFPGANv1.4.pth"]=/data/models/GFPGAN/GFPGANv1.4.pth
-MOUNTS["${INVOKEAI_ROOT}/models/gfpgan/weights"]=/data/models/GFPGAN/
-MOUNTS["${INVOKEAI_ROOT}/models/realesrgan"]=/data/models/RealESRGAN/
+# MOUNTS["${INVOKEAI_ROOT}/models/codeformer"]=/data/models/Codeformer/
+# MOUNTS["${INVOKEAI_ROOT}/models/gfpgan/GFPGANv1.4.pth"]=/data/models/GFPGAN/GFPGANv1.4.pth
+# MOUNTS["${INVOKEAI_ROOT}/models/gfpgan/weights"]=/data/models/GFPGAN/
+# MOUNTS["${INVOKEAI_ROOT}/models/realesrgan"]=/data/models/RealESRGAN/
 
 
-MOUNTS["${INVOKEAI_ROOT}/autoimport/controlnet"]=/data/controlnet/
-MOUNTS["${INVOKEAI_ROOT}/autoimport/embedding"]=/data/embeddings/
-MOUNTS["${INVOKEAI_ROOT}/autoimport/lora"]=/data/models/Lora/
-MOUNTS["${INVOKEAI_ROOT}/autoimport/main"]=/data/models/Stable-diffusion/
-MOUNTS["${INVOKEAI_ROOT}/autoimport/onnx"]=/data/models/Onnx/
-MOUNTS["${INVOKEAI_ROOT}/autoimport/vae"]=/data/models/VAE/
+# MOUNTS["${INVOKEAI_ROOT}/autoimport/controlnet"]=/data/controlnet/
+# MOUNTS["${INVOKEAI_ROOT}/autoimport/embedding"]=/data/embeddings/
+# MOUNTS["${INVOKEAI_ROOT}/autoimport/lora"]=/data/models/Lora/
+# MOUNTS["${INVOKEAI_ROOT}/autoimport/main"]=/data/models/Stable-diffusion/
+# MOUNTS["${INVOKEAI_ROOT}/autoimport/onnx"]=/data/models/Onnx/
+# MOUNTS["${INVOKEAI_ROOT}/autoimport/vae"]=/data/models/VAE/
+
+MOUNTS["${INVOKEAI_ROOT}/models"]=/data/models/
 
 MOUNTS["${INVOKEAI_ROOT}/configs"]=/data/config/invoke/configs/
 MOUNTS["${INVOKEAI_ROOT}/databases"]=/data/config/invoke/databases/
@@ -73,12 +75,7 @@ configure() {
 # else
 #     shift
 # fi
-
-
-if "${PRELOAD}" == "true"; then
-  configure
-fi
-
+configure
 ### Set the $PUBLIC_KEY env var to enable SSH access.
 # We do not install openssh-server in the image by default to avoid bloat.
 # but it is useful to have the full SSH server e.g. on Runpod.
