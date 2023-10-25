@@ -140,7 +140,7 @@ RUN python3 -c "from patchmatch import patch_match"
 # RUN mkdir -p ${INVOKEAI_ROOT}  && chown -R invoke:invoke ${INVOKEAI_ROOT}
 ENV  CLI_ARGS="--always_use_cpu" HF_HOME=/root/.cache/huggingface
 COPY entrypoint.sh /docker/entrypoint.sh
- RUN chmod +x /docker/entrypoint.sh
+RUN chmod +x /docker/entrypoint.sh
 EXPOSE 7860
 VOLUME ["/data","/output"]
 ENTRYPOINT ["/docker/entrypoint.sh"]
