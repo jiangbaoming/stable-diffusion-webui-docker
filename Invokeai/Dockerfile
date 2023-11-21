@@ -10,15 +10,16 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt update && apt-get install -y --no-install-recommends \
         git \
-        python3.10-venv \
+        curl \
+        python3-venv \
         python3-pip \
         build-essential \
-        curl \
         vim \
         tmux \
         ncdu \
         iotop \
         bzip2 \
+        magic-wormhole \
         # gosu \
         libglib2.0-0 \
         libgl1-mesa-glx \
@@ -33,8 +34,8 @@ ENV VIRTUAL_ENV=/opt/venv/invokeai
 RUN git clone https://github.com/invoke-ai/InvokeAI.git ${INVOKEAI_SRC}
 
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-ARG TORCH_VERSION=2.0.1
-ARG TORCHVISION_VERSION=0.15.2
+ARG TORCH_VERSION=2.1.0
+ARG TORCHVISION_VERSION=0.16
 ARG GPU_DRIVER=cpu
 ARG TARGETPLATFORM="linux/amd64"
 # unused but available
@@ -50,9 +51,9 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$TARGETPLATFORM" = "linux/arm64" ] || [ "$GPU_DRIVER" = "cpu" ]; then \
         extra_index_url_arg="--extra-index-url https://download.pytorch.org/whl/cpu"; \
     elif [ "$GPU_DRIVER" = "rocm" ]; then \
-        extra_index_url_arg="--extra-index-url https://download.pytorch.org/whl/rocm5.4.2"; \
+        extra_index_url_arg="--extra-index-url https://download.pytorch.org/whl/rocm5.6"; \
     else \
-        extra_index_url_arg="--extra-index-url https://download.pytorch.org/whl/cu118"; \
+        extra_index_url_arg="--extra-index-url https://download.pytorch.org/whl/cu121"; \
     fi &&\
     pip install $extra_index_url_arg \
         torch==$TORCH_VERSION \
