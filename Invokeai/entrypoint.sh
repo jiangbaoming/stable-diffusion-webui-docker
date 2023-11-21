@@ -53,7 +53,7 @@ done
 
 
 USER_ID=${CONTAINER_UID:-1000}
-USER=ubuntu
+USER=invoke
 usermod -u ${USER_ID} ${USER} 1>/dev/null
 
 configure() {
