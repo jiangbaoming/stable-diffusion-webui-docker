@@ -52,9 +52,9 @@ for to_path in "${!MOUNTS[@]}"; do
 done
 
 
-# USER_ID=${CONTAINER_UID:-1000}
-# USER=ubuntu
-# usermod -u ${USER_ID} ${USER} 1>/dev/null
+USER_ID=${CONTAINER_UID:-1000}
+USER=ubuntu
+usermod -u ${USER_ID} ${USER} 1>/dev/null
 
 configure() {
     # Configure the runtime directory
@@ -64,19 +64,19 @@ configure() {
         echo "======================================================================"
     else
         mkdir -p "${INVOKEAI_ROOT}"
-        # chown --recursive ${USER} "${INVOKEAI_ROOT}"
-        invokeai-configure --yes --default_only
+        chown --recursive ${USER} "${INVOKEAI_ROOT}"
+        gosu ${USER} invokeai-configure --yes --default_only
     fi
 }
 
 ## Skip attempting to configure.
 ## Must be passed first, before any other args.
-# if [[ $1 != "--no-configure" ]]; then
-#     configure
-# else
-#     shift
-# fi
-configure
+if [[ $1 != "--no-configure" ]]; then
+    configure
+else
+    shift
+fi
+# configure
 ### Set the $PUBLIC_KEY env var to enable SSH access.
 # We do not install openssh-server in the image by default to avoid bloat.
 # but it is useful to have the full SSH server e.g. on Runpod.
@@ -91,9 +91,5 @@ if [[ -v "PUBLIC_KEY" ]] && [[ ! -d "${HOME}/.ssh" ]]; then
     popd
     service ssh start
 fi
-
-
 cd "${INVOKEAI_ROOT}"
-
-
-exec "$@"
+exec gosu ${USER} "$@"
