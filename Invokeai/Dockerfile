@@ -137,7 +137,7 @@ RUN cd /usr/lib/$(uname -p)-linux-gnu/pkgconfig/ && ln -sf opencv4.pc opencv.pc
 RUN python3 -c "from patchmatch import patch_match"
 
 # Create unprivileged user and make the local dir
-# RUN useradd --create-home --shell /bin/bash -u 1000 --comment "container local user" invoke
+RUN useradd --comment "container local user" invoke
 # RUN mkdir -p ${INVOKEAI_ROOT}  && chown -R invoke:invoke ${INVOKEAI_ROOT}
 # RUN mkdir -p ${INVOKEAI_ROOT} && chown -R 1000:1000 ${INVOKEAI_ROOT}
 ENV  CLI_ARGS="--always_use_cpu" HF_HOME=/root/.cache/huggingface
