@@ -20,7 +20,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         iotop \
         bzip2 \
         magic-wormhole \
-        # gosu \
+        gosu \
         libglib2.0-0 \
         libgl1-mesa-glx \
         build-essential \
