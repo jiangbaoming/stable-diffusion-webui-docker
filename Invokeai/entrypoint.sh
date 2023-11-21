@@ -52,9 +52,9 @@ for to_path in "${!MOUNTS[@]}"; do
 done
 
 
-USER_ID=${CONTAINER_UID:-1000}
-USER=ubuntu
-usermod -u ${USER_ID} ${USER} 1>/dev/null
+# USER_ID=${CONTAINER_UID:-1000}
+# USER=ubuntu
+# usermod -u ${USER_ID} ${USER} 1>/dev/null
 
 configure() {
     # Configure the runtime directory
@@ -64,7 +64,7 @@ configure() {
         echo "======================================================================"
     else
         mkdir -p "${INVOKEAI_ROOT}"
-        chown --recursive ${USER} "${INVOKEAI_ROOT}"
+        # chown --recursive ${USER} "${INVOKEAI_ROOT}"
         invokeai-configure --yes --default_only
     fi
 }
@@ -96,4 +96,4 @@ fi
 cd "${INVOKEAI_ROOT}"
 
 
-exec gosu ${USER} "$@"
+exec "$@"
