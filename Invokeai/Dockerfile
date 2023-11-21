@@ -146,5 +146,5 @@ RUN chmod +x /docker/entrypoint.sh
 EXPOSE 7860
 VOLUME ["/data","/output"]
 ENTRYPOINT ["/docker/entrypoint.sh"]
-CMD invokeai-web ${CLI_ARGS} --ignore_missing_core_models --host 0.0.0.0 --port 7860 --root ${INVOKEAI_ROOT} \
+CMD invokeai-web ${CLI_ARGS} --no-nsfw_checker --ignore_missing_core_models --host 0.0.0.0 --port 7860 --root ${INVOKEAI_ROOT} \
   --outdir /output/invoke 
