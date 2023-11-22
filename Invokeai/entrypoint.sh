@@ -2,12 +2,12 @@
 
 set -Eeuo pipefail
 
-declare -A MOUNTS
+# declare -A MOUNTS
 
 # mkdir -p ${CONFIG_DIR} ${ROOT}/configs/stable-diffusion/
 
 # cache
-MOUNTS["/root/.cache"]=/data/.cache/
+# MOUNTS["/root/.cache"]=/data/.cache/
 
 # this is really just a hack to avoid migrations
 # rm -rf ${HF_HOME}/diffusers
@@ -26,30 +26,30 @@ MOUNTS["/root/.cache"]=/data/.cache/
 # MOUNTS["${INVOKEAI_ROOT}/autoimport/onnx"]=/data/models/Onnx/
 # MOUNTS["${INVOKEAI_ROOT}/autoimport/vae"]=/data/models/VAE/
 
-MOUNTS["${INVOKEAI_ROOT}/models"]=/data/models/
+# MOUNTS["${INVOKEAI_ROOT}/models"]=/data/models/
 
-MOUNTS["${INVOKEAI_ROOT}/configs"]=/data/config/invoke/configs/
-MOUNTS["${INVOKEAI_ROOT}/databases"]=/data/config/invoke/databases/
-MOUNTS["${INVOKEAI_ROOT}/invokeai.yaml"]=/data/config/invoke/invokeai.yaml
+# MOUNTS["${INVOKEAI_ROOT}/configs"]=/data/config/invoke/configs/
+# MOUNTS["${INVOKEAI_ROOT}/databases"]=/data/config/invoke/databases/
+# MOUNTS["${INVOKEAI_ROOT}/invokeai.yaml"]=/data/config/invoke/invokeai.yaml
 
 
-MOUNTS["${INVOKEAI_ROOT}/models/ldm"]=/data/.cache/invoke/ldm/
+# MOUNTS["${INVOKEAI_ROOT}/models/ldm"]=/data/.cache/invoke/ldm/
 
 # hacks
 
-for to_path in "${!MOUNTS[@]}"; do
-  set -Eeuo pipefail
-  from_path="${MOUNTS[${to_path}]}"
-  rm -rf "${to_path}"
-  mkdir -p "$(dirname "${to_path}")"
-  # ends with slash, make it!
-  if [[ "$from_path" == */ ]]; then
-    mkdir -vp "$from_path"
-  fi
+# for to_path in "${!MOUNTS[@]}"; do
+#   set -Eeuo pipefail
+#   from_path="${MOUNTS[${to_path}]}"
+#   rm -rf "${to_path}"
+#   mkdir -p "$(dirname "${to_path}")"
+#   # ends with slash, make it!
+#   if [[ "$from_path" == */ ]]; then
+#     mkdir -vp "$from_path"
+#   fi
 
-  ln -sT "${from_path}" "${to_path}"
-  echo Mounted $(basename "${from_path}")
-done
+#   ln -sT "${from_path}" "${to_path}"
+#   echo Mounted $(basename "${from_path}")
+# done
 
 
 USER_ID=${CONTAINER_UID:-1000}
