@@ -140,8 +140,8 @@ RUN python3 -c "from patchmatch import patch_match"
 RUN useradd --comment "container local user" invoke
 # RUN mkdir -p ${INVOKEAI_ROOT}  && chown -R invoke:invoke ${INVOKEAI_ROOT}
 RUN mkdir -p ${INVOKEAI_ROOT} && chown -R 1000:1000 ${INVOKEAI_ROOT}
-# HF_HOME=/root/.cache/huggingface
-ENV  CLI_ARGS="--always_use_cpu" 
+
+ENV  CLI_ARGS="--always_use_cpu"  HF_HOME=${INVOKEAI_ROOT}/.cache/huggingface
 COPY entrypoint.sh /docker/entrypoint.sh
 RUN chmod +x /docker/entrypoint.sh
 EXPOSE 7860
