@@ -118,6 +118,6 @@ RUN python3 -c "from patchmatch import patch_match"
 
 RUN mkdir -p ${INVOKEAI_ROOT} && chown -R 1000:1000 ${INVOKEAI_ROOT}
 ENV TZ=Asia/Shanghai
-COPY docker/docker-entrypoint.sh ./
+COPY  --from=builder ${INVOKEAI_SRC}/docker/docker-entrypoint.sh ./
 ENTRYPOINT ["/opt/invokeai/docker-entrypoint.sh"]
 CMD ["invokeai-web", "--host", "0.0.0.0","--port","9090","--always_use_cpu"]
