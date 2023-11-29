@@ -22,7 +22,7 @@ ARG TARGETPLATFORM="linux/amd64"
 # unused but available
 ARG BUILDPLATFORM
 
-RUN git clone https://github.com/invoke-ai/InvokeAI.git ${INVOKEAI_SRC}
+RUN mkdir -p /invokeai && cd /invokeai && git clone https://github.com/invoke-ai/InvokeAI.git 
 
 WORKDIR ${INVOKEAI_SRC}
 
@@ -48,6 +48,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 # at path defined by ${INVOKEAI_SRC}
 # COPY invokeai ./invokeai
 # COPY pyproject.toml ./
+RUN cp -r /invokeai/InvokeAI/invokeai ./invokeai
+RUN cp  /invokeai/InvokeAI/pyproject.toml ./
 RUN --mount=type=cache,target=/root/.cache/pip \
     # xformers + triton fails to install on arm64
     if [ "$GPU_DRIVER" = "cuda" ] && [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
@@ -60,7 +62,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 FROM node:18 AS web-builder
 WORKDIR /build
-COPY --from=builder ${INVOKEAI_SRC}/invokeai/frontend/web/ ./
+COPY --from=builder /invokeai/InvokeAI/invokeai/frontend/web/ ./
 RUN --mount=type=cache,target=/usr/lib/node_modules \
     npm install --include dev
 RUN --mount=type=cache,target=/usr/lib/node_modules \
@@ -118,6 +120,6 @@ RUN python3 -c "from patchmatch import patch_match"
 
 RUN mkdir -p ${INVOKEAI_ROOT} && chown -R 1000:1000 ${INVOKEAI_ROOT}
 ENV TZ=Asia/Shanghai
-COPY  --from=builder ${INVOKEAI_SRC}/docker/docker-entrypoint.sh ./
+COPY  --from=builder /invokeai/InvokeAI/docker/docker-entrypoint.sh ./
 ENTRYPOINT ["/opt/invokeai/docker-entrypoint.sh"]
 CMD ["invokeai-web", "--host", "0.0.0.0","--port","9090","--always_use_cpu"]
