@@ -1,37 +1,18 @@
 # syntax=docker/dockerfile:1.4
-
 ## Builder stage
-
-FROM library/ubuntu:22.04
-
+FROM library/ubuntu:23.04 AS builder
 ARG DEBIAN_FRONTEND=noninteractive
 RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt update && apt-get install -y --no-install-recommends \
+    apt update && apt-get install -y \
         git \
-        curl \
         python3-venv \
         python3-pip \
-        build-essential \
-        vim \
-        tmux \
-        ncdu \
-        iotop \
-        bzip2 \
-        magic-wormhole \
-        gosu \
-        libglib2.0-0 \
-        libgl1-mesa-glx \
-        build-essential \
-        libopencv-dev \
-        libstdc++-10-dev && \
-        apt-get clean && apt-get autoclean
+        build-essential
 
 ENV INVOKEAI_SRC=/opt/invokeai
 ENV VIRTUAL_ENV=/opt/venv/invokeai
-
-RUN git clone https://github.com/invoke-ai/InvokeAI.git ${INVOKEAI_SRC}
 
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ARG TORCH_VERSION=2.1.0
@@ -40,6 +21,8 @@ ARG GPU_DRIVER=cpu
 ARG TARGETPLATFORM="linux/amd64"
 # unused but available
 ARG BUILDPLATFORM
+
+RUN git clone https://github.com/invoke-ai/InvokeAI.git ${INVOKEAI_SRC}
 
 WORKDIR ${INVOKEAI_SRC}
 
@@ -51,7 +34,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$TARGETPLATFORM" = "linux/arm64" ] || [ "$GPU_DRIVER" = "cpu" ]; then \
         extra_index_url_arg="--extra-index-url https://download.pytorch.org/whl/cpu"; \
     elif [ "$GPU_DRIVER" = "rocm" ]; then \
-        extra_index_url_arg="--extra-index-url https://download.pytorch.org/whl/rocm5.6"; \
+        extra_index_url_arg="--index-url https://download.pytorch.org/whl/rocm5.6"; \
     else \
         extra_index_url_arg="--extra-index-url https://download.pytorch.org/whl/cu121"; \
     fi &&\
@@ -75,77 +58,66 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 # #### Build the Web UI ------------------------------------
 
-# FROM node:18 AS web-builder
-# WORKDIR /build
-# COPY invokeai/frontend/web/ ./
-# RUN --mount=type=cache,target=/usr/lib/node_modules \
-#     npm install --include dev
-# RUN --mount=type=cache,target=/usr/lib/node_modules \
-#     yarn vite build
+FROM node:18 AS web-builder
+WORKDIR /build
+COPY invokeai/frontend/web/ ./
+RUN --mount=type=cache,target=/usr/lib/node_modules \
+    npm install --include dev
+RUN --mount=type=cache,target=/usr/lib/node_modules \
+    yarn vite build
 
 
 #### Runtime stage ---------------------------------------
 
-# FROM library/ubuntu:22.04 AS runtime
+FROM library/ubuntu:23.04 AS runtime
 
-# ARG DEBIAN_FRONTEND=noninteractive
+ARG DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-# RUN apt update && apt install -y --no-install-recommends \
-#         git \
-#         curl \
-#         vim \
-#         tmux \
-#         ncdu \
-#         iotop \
-#         bzip2 \
-#         gosu \
-#         libglib2.0-0 \
-#         libgl1-mesa-glx \
-#         python3-venv \
-#         python3-pip \
-#         build-essential \
-#         libopencv-dev \
-#         libstdc++-10-dev &&\
-#     apt-get clean && apt-get autoclean
+RUN apt update && apt install -y --no-install-recommends \
+        git \
+        curl \
+        vim \
+        tmux \
+        ncdu \
+        iotop \
+        bzip2 \
+        gosu \
+        magic-wormhole \
+        libglib2.0-0 \
+        libgl1-mesa-glx \
+        python3-venv \
+        python3-pip \
+        build-essential \
+        libopencv-dev \
+        libstdc++-10-dev &&\
+    apt-get clean && apt-get autoclean
 
-# globally add magic-wormhole
-# for ease of transferring data to and from the container
-# when running in sandboxed cloud environments; e.g. Runpod etc.
-RUN pip install magic-wormhole
 
-# ENV INVOKEAI_SRC=/opt/invokeai
-# ENV VIRTUAL_ENV=/opt/venv/invokeai
+ENV INVOKEAI_SRC=/opt/invokeai
+ENV VIRTUAL_ENV=/opt/venv/invokeai
 ENV INVOKEAI_ROOT=/invokeai
 ENV PATH="$VIRTUAL_ENV/bin:$INVOKEAI_SRC:$PATH"
 
 # --link requires buldkit w/ dockerfile syntax 1.4
-# COPY --link --from=builder ${INVOKEAI_SRC} ${INVOKEAI_SRC}
-# COPY --link --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
-# COPY --link --from=web-builder /build/dist ${INVOKEAI_SRC}/invokeai/frontend/web/dist
+COPY --link --from=builder ${INVOKEAI_SRC} ${INVOKEAI_SRC}
+COPY --link --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+COPY --link --from=web-builder /build/dist ${INVOKEAI_SRC}/invokeai/frontend/web/dist
 
 # Link amdgpu.ids for ROCm builds
 # contributed by https://github.com/Rubonnek
 RUN mkdir -p "/opt/amdgpu/share/libdrm" &&\
   ln -s "/usr/share/libdrm/amdgpu.ids" "/opt/amdgpu/share/libdrm/amdgpu.ids"
 
-# WORKDIR ${INVOKEAI_SRC}
+WORKDIR ${INVOKEAI_SRC}
 
 # build patchmatch
 RUN cd /usr/lib/$(uname -p)-linux-gnu/pkgconfig/ && ln -sf opencv4.pc opencv.pc
 RUN python3 -c "from patchmatch import patch_match"
 
-# Create unprivileged user and make the local dir
-RUN useradd --comment "container local user" invoke
-# RUN mkdir -p ${INVOKEAI_ROOT}  && chown -R invoke:invoke ${INVOKEAI_ROOT}
 RUN mkdir -p ${INVOKEAI_ROOT} && chown -R 1000:1000 ${INVOKEAI_ROOT}
-
-ENV  CLI_ARGS="--always_use_cpu"  HF_HOME=${INVOKEAI_ROOT}/.cache/huggingface
-COPY entrypoint.sh /docker/entrypoint.sh
-RUN chmod +x /docker/entrypoint.sh
-EXPOSE 7860
-VOLUME ["/data","/output"]
-ENTRYPOINT ["/docker/entrypoint.sh"]
-CMD invokeai-web ${CLI_ARGS} --no-nsfw_checker --ignore_missing_core_models --host 0.0.0.0 --port 7860 --root ${INVOKEAI_ROOT} \
-  --outdir /output/invoke 
+ENV TZ=Asia/Shanghai
+COPY docker/docker-entrypoint.sh ./
+ENTRYPOINT ["/opt/invokeai/docker-entrypoint.sh"]
+CMD ["invokeai-web", "--host", "0.0.0.0","--port","9090","--always_use_cpu"]
